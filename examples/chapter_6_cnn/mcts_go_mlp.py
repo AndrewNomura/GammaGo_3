@@ -7,8 +7,8 @@ from keras.models import Sequential
 from keras.layers import Dense
 
 np.random.seed(123)  # <1>
-X = np.load('../generated_games/features-40k.npy')  # <2>
-Y = np.load('../generated_games/labels-40k.npy')
+X = np.load('dlgo/generated_games/features-40k.npy', allow_pickle=True)  # <2>
+Y = np.load('dlgo/generated_games/labels-40k.npy', allow_pickle=True)
 samples = X.shape[0]
 board_size = 9 * 9
 

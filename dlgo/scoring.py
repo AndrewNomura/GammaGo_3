@@ -30,9 +30,7 @@ class GameResult(namedtuple('GameResult', 'b w komi')):
     @property
     def winner(self):
         if self.b > self.w + self.komi:
-            print("Player Black Wins")
             return Player.black
-        print("Player White Wins")
         return Player.white
 
     @property

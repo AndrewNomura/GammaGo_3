@@ -10,6 +10,7 @@ from dlgo.agent.helpers import is_point_an_eye
 from dlgo import encoders, agent
 from dlgo import goboard
 from dlgo import kerasutil
+from dlgo import networks
 from examples.chapter_6_cnn.mcts_go_mlp import board_size
 
 __all__ = [
@@ -41,13 +42,13 @@ class PolicyAgent(Agent):
         self._collector = None
         self._temperature = 0.0
 
-    encoder = encoders.simple.SimpleEncoder((board_size, board_size))
+    encoder = dlgo.encoders.simple.SimpleEncoder((board_size, board_size))
     model = Sequential()
-    for layer in dlgo.networks.large.layers(encoder.shape()):
+    for layer in networks.large.layers(encoder.shape()):
         model.add(layer)
     model.add(Dense(encoder.num_points()))
     model.add(Activation('softmax'))
-    new_agent = agent.PolicyAgent(model, encoder)
+    # new_agent = agent.PolicyAgent(model, encoder)
 
     def predict(self, game_state):
         encoded_state = self._encoder.encode(game_state)
@@ -85,7 +86,7 @@ class PolicyAgent(Agent):
             candidates, num_moves, replace=False, p=move_probs)
         for point_idx in ranked_moves:
             point = self._encoder.decode_point_index(point_idx)
-            if game_state.is_valid_move(goboard.Move.play(point)) and \
+            if game_state.is_valid_move(dlgo.goboard.Move.play(point)) and \
                     not is_point_an_eye(game_state.board,
                                         point,
                                         game_state.next_player):
@@ -94,9 +95,9 @@ class PolicyAgent(Agent):
                         state=board_tensor,
                         action=point_idx
                     )
-                return goboard.Move.play(point)
+                return dlgo.goboard.Move.play(point)
         # No legal, non-self-destructive moves less.
-        return goboard.Move.pass_turn()
+        return dlgo.goboard.Move.pass_turn()
 
     def serialize(self, h5file):
         h5file.create_group('encoder')
@@ -104,7 +105,7 @@ class PolicyAgent(Agent):
         h5file['encoder'].attrs['board_width'] = self._encoder.board_width
         h5file['encoder'].attrs['board_height'] = self._encoder.board_height
         h5file.create_group('model')
-        kerasutil.save_model_to_hdf5_group(self._model, h5file['model'])
+        dlgo.kerasutil.save_model_to_hdf5_group(self._model, h5file['model'])
 
     def train(self, experience, lr=0.0000001, clipnorm=1.0, batch_size=512):
         opt = SGD(lr=lr, clipnorm=clipnorm)
@@ -126,7 +127,7 @@ class PolicyAgent(Agent):
 
 
 def load_policy_agent(h5file):
-    model = kerasutil.load_model_from_hdf5_group(
+    model = dlgo.kerasutil.load_model_from_hdf5_group(
         h5file['model'],
         custom_objects={'policy_gradient_loss': policy_gradient_loss})
     encoder_name = h5file['encoder'].attrs['name']
@@ -134,7 +135,7 @@ def load_policy_agent(h5file):
         encoder_name = encoder_name.decode('ascii')
     board_width = h5file['encoder'].attrs['board_width']
     board_height = h5file['encoder'].attrs['board_height']
-    encoder = encoders.get_encoder_by_name(
+    encoder = dlgo.encoders.get_encoder_by_name(
         encoder_name,
         (board_width, board_height))
     return PolicyAgent(model, encoder)
