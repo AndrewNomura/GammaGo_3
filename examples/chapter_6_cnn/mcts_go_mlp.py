@@ -1,4 +1,4 @@
-from __future__ import print_function
+"""from __future__ import print_function
 # TODO: tell readers where to put feature and label files in text
 
 # tag::mcts_go_mlp_preprocessing[]
@@ -64,3 +64,4 @@ for row in range(9):
         i += 1
     print(' '.join(row_formatted))
 # end::mcts_go_evaluate[]
+"""
